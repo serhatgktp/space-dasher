@@ -43,7 +43,7 @@
 # $s3 -> 
 # $s4 -> 
 # $s5 -> 
-# $s6 -> Is the character mid-air? (Boolean to prevent multi-jumping)
+# $s6 -> Has the character double-jumped since it last landed? (Boolean to prevent jumping more than twice)
 # $s7 -> Loop counter
 
 
@@ -51,11 +51,13 @@
 .eqv MS_PER_FRAME 33            # Miliseconds to sleep after each loop
 # .eqv MS_PER_FRAME 250
 .eqv ROW_LENGTH   256           # Row length
-.eqv CHARACTER_START_ADDRESS 0x1000850c
+.eqv CHARACTER_START_ADDRESS 0x10008f0c
 .eqv PLATFORM_ADDRESS_1_1 0x1000a00c    # 32 rows below base address
-.eqv PLATFORM_ADDRESS_1_2 0x1000ac6c    # 32 rows below base address
-.eqv PLATFORM_ADDRESS_1_3 0x1000a6c4    # 32 rows below base address
-.eqv GRAVITY_TIMER 15           # How many seconds should pass before each gravity tick
+.eqv PLATFORM_ADDRESS_1_2 0x1000ab3c    # 32 rows below base address
+.eqv PLATFORM_ADDRESS_1_3 0x1000ac74    # 32 rows below base address
+.eqv PLATFORM_ADDRESS_1_4 0x1000a8b0    # 32 rows below base address
+.eqv GRAVITY_TIMER 3           # How many seconds should pass between each gravity tick
+.eqv BACKGROUND_COLOR 0x000000  # Black
 
 .data
     padding:	.space	36000   #Empty space to prevent game data from being overwritten due to large bitmap size
@@ -96,6 +98,11 @@ sw $t1, 0($sp)      # Push platform base address to $sp
 jal draw_platform_short
 
 li $t1, PLATFORM_ADDRESS_1_3
+addi $sp, $sp, -4
+sw $t1, 0($sp)      # Push platform base address to $sp
+jal draw_platform_short
+
+li $t1, PLATFORM_ADDRESS_1_4
 addi $sp, $sp, -4
 sw $t1, 0($sp)      # Push platform base address to $sp
 jal draw_platform_short
@@ -159,7 +166,7 @@ draw_character:
     jr $ra
 
 delete_character:
-    li $t0, 0x000000    # black
+    li $t0, BACKGROUND_COLOR
     sw $t0, 0($s1)
     sw $t0, 4($s1)
     sw $t0, 8($s1)
@@ -184,11 +191,9 @@ delete_character:
 ## DRAW PLATFORMS ##
 ####################
 
-# draw_platform_1_1:
 draw_platform_short:
     li $t0 0x6bad00 # lime
     
-    # li $t1 PLATFORM_ADDRESS_1_1
     lw $t1, 0($sp)      # Pop platform address from $sp
     addi $sp, $sp, 4
 
@@ -269,7 +274,8 @@ respond_to_w:
     lw $t1, -240($s1)
     beq $t0, $t1, return_func
 
-    j move_up
+    # j move_up
+    j jump
 
     jr $ra
 
@@ -406,6 +412,28 @@ move_right:
     j draw_character
     jr $ra
 
+jump:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)  # Store current $ra
+    
+    jal move_up             # One jump takes the player up 7 pixels
+    jal animation_sleep
+    jal move_up
+    jal animation_sleep
+    jal move_up
+    jal animation_sleep
+    jal move_up
+    jal animation_sleep
+    jal move_up
+    jal animation_sleep
+    jal move_up
+    jal animation_sleep
+    
+    lw $ra, 0($sp)  # Load current $ra
+    addi $sp, $sp, 4
+    jr $ra
+
+
 ############
 ##  MISC  ##
 ############
@@ -418,9 +446,15 @@ frame_sleep:
     jr $ra
     # j main_game_loop
 
+animation_sleep:
+    li $a0 10    # Sleep for 5 seconds between each animation frame
+    li $v0, 32
+    syscall
+    jr $ra
+
 # Clear screen
 clear_screen:
-    li $t0, 0x000000    # black (white for debug)
+    li $t0, BACKGROUND_COLOR
     li $t2, BASE_ADDRESS
     addi $t1, $t2, 16380    # $t1 = 256*64 - 4  ($t1 holds address of bottom-right pixel)
     sw $t0, 0($t2)  # paint initial pixel
