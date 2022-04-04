@@ -79,6 +79,8 @@ main:
 ###############
 
 # Pre-loop code
+jal clear_screen
+
 li $s7, 0   # Loop counter
 la $s6, newline
 jal draw_character
@@ -411,6 +413,19 @@ frame_sleep:
     syscall
     jr $ra
     # j main_game_loop
+
+# Clear screen
+clear_screen:
+    li $t0, 0x000000    # black (white for debug)
+    li $t2, BASE_ADDRESS
+    addi $t1, $t2, 16380    # $t1 = 256*64 - 4  ($t1 holds address of bottom-right pixel)
+    sw $t0, 0($t2)  # paint initial pixel
+    clear_screen_loop:
+        addi $t2, $t2, 4    # increment pixel
+        sw $t0, 0($t2)  # paint the pixel black
+        beq $t2, $t1, return_func
+        j clear_screen_loop
+
 
 return_func:    # Return any function. Assumes function was called with jal.
     jr $ra
