@@ -34,12 +34,27 @@
 #
 #####################################################################
 
+###############
+## REGISTERS ##
+###############
+# $s0 -> BASE_ADDRESS
+# $s1 -> CHARACTER_START_ADDRESS
+# $s2 -> 
+# $s3 -> 
+# $s4 -> 
+# $s5 -> 
+# $s6 -> Is the character mid-air? (Boolean to prevent multi-jumping)
+# $s7 -> Loop counter
+
+
 .eqv BASE_ADDRESS 0x10008000    # Base address of the screen for 4x4 Unit 256x256 display
 .eqv MS_PER_FRAME 33            # Miliseconds to sleep after each loop
 # .eqv MS_PER_FRAME 250
 .eqv ROW_LENGTH   256           # Row length
 .eqv CHARACTER_START_ADDRESS 0x1000850c
 .eqv PLATFORM_ADDRESS_1_1 0x1000a00c    # 32 rows below base address
+.eqv PLATFORM_ADDRESS_1_2 0x1000ac6c    # 32 rows below base address
+.eqv PLATFORM_ADDRESS_1_3 0x1000a6c4    # 32 rows below base address
 .eqv GRAVITY_TIMER 15           # How many seconds should pass before each gravity tick
 
 .data
@@ -67,7 +82,22 @@ main:
 li $s7, 0   # Loop counter
 la $s6, newline
 jal draw_character
-jal draw_platform_1_1
+
+li $t1, PLATFORM_ADDRESS_1_1
+addi $sp, $sp, -4
+sw $t1, 0($sp)      # Push platform base address to $sp
+jal draw_platform_short
+
+li $t1, PLATFORM_ADDRESS_1_2
+addi $sp, $sp, -4
+sw $t1, 0($sp)      # Push platform base address to $sp
+jal draw_platform_short
+
+li $t1, PLATFORM_ADDRESS_1_3
+addi $sp, $sp, -4
+sw $t1, 0($sp)      # Push platform base address to $sp
+jal draw_platform_short
+
 # Main Loop
 main_game_loop:
 
@@ -84,10 +114,10 @@ main_game_loop:
 
     jal frame_sleep
 
-    li $t0, GRAVITY_TIMER  # 
+    li $t0, GRAVITY_TIMER  # Repetition timer for gravity
     div $s7, $t0
-    mfhi $t0    # Store remainder of loop ctr / 10 in $t0
-    bne $t0, $zero, main_game_loop  # If $s7 (loop ctr) is a multiple of 10, apply gravity. Otherwise, ignore gravity
+    mfhi $t0    # Store remainder of loop ctr / GRAVITY_TIMER in $t0
+    bne $t0, $zero, main_game_loop  # If $s7 (loop ctr) is a multiple of GRAVITY_TIMER, apply gravity. Otherwise, ignore gravity
     jal gravity
 
     j main_game_loop
@@ -152,9 +182,14 @@ delete_character:
 ## DRAW PLATFORMS ##
 ####################
 
-draw_platform_1_1:
+# draw_platform_1_1:
+draw_platform_short:
     li $t0 0x6bad00 # lime
-    li $t1 PLATFORM_ADDRESS_1_1
+    
+    # li $t1 PLATFORM_ADDRESS_1_1
+    lw $t1, 0($sp)      # Pop platform address from $sp
+    addi $sp, $sp, 4
+
     sw $t0, 0($t1)
     sw $t0, 4($t1)
     sw $t0, 8($t1)
@@ -219,14 +254,42 @@ keypress_happened:
 respond_to_w:
     li $t1, ROW_LENGTH
     add $t0, $s0, $t1 # Points to the first pixel of the second row
-    bge $s1, $t0, move_up   # Check that the character is not currently at the top row
+    # bge $s1, $t0, move_up   # Check that the character is not currently at the top row
+    blt $s1, $t0, return_func   # If the character is currently at the top row, return without moving up
+
+    li $t0 0x6bad00 # lime      # Check if this color is stored above the character. Return without moving if it is
+    lw $t1, -256($s1)
+    beq $t0, $t1, return_func
+    lw $t1, -240($s1)
+    beq $t0, $t1, return_func
+
+    j move_up
+
     jr $ra
 
 respond_to_a:
     li $t1, ROW_LENGTH
     div $s1, $t1    # Divide address of top-left pixel of the character by ROW_LENGTH
     mfhi $t0               # Store remainder in $t0
-    bge $t0, 3, move_left   # If the character is at least 4 pixels far from the very left of the screen, move left
+    # bge $t0, 3, move_left   # If the character is at least 4 pixels far from the very left of the screen, move left
+    blt $t0, 3, return_func   # If the character is touching the left of the screen, return without moving left
+
+    li $t1 0x6bad00 # lime      # Check if this color is stored on the left of the character. Return without moving if it is
+    lw $t0, -4($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 252($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 508($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 764($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 1020($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 1276($s1)
+    beq $t0, $t1, return_func
+
+    j move_left
+
     jr $ra
 
 respond_to_s:
@@ -260,7 +323,25 @@ respond_to_d:
     div $t2, $t1    # Divide address of top-right pixel of the character by ROW_LENGTH
     mfhi $t0               # Store remainder in $t0
     addi $t1, $t1, -4
-    blt $t0, $t1, move_right   # If the character is at least 4 pixels far from the very right of the screen, move right
+    # blt $t0, $t1, move_right  # If the character is at least 4 pixels far from the very right of the screen, move right
+    bge $t0, $t1, return_func   # If the character is touching the right side of the screen, return without moving right
+
+    li $t9 0x6bad00 # lime      # Check that none of the pixels touching the right side of our character are green (platform color)
+    lw $t0, 4($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 260($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 516($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 772($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 1028($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 1284($t2)
+    beq $t0, $t9, return_func
+
+    j move_right
+
     jr $ra
 
 ################
