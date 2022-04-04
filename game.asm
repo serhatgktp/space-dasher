@@ -247,6 +247,10 @@ keypress_happened:
     beq $t2, 0x53, respond_to_s # ASCII code of 'S' is 0x53
     beq $t2, 0x44, respond_to_d # ASCII code of 'D' is 0x44
 
+    # Use 'p' to restart game
+    beq $t2, 0x70, main # ASCII code of 'p' is 0x70
+    beq $t2, 0x50, main # ASCII code of 'P' is 0x50
+
     # Use 'z' to exit game
     beq $t2, 0x7A, end_program # ASCII code of 'z' is 0x7A
     beq $t2, 0x5A, end_program # ASCII code of 'Z' is 0x5A
