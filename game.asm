@@ -84,7 +84,7 @@ main:
 jal clear_screen
 
 li $s7, 0   # Loop counter
-la $s6, newline
+li $s6 0    # Player jump counter
 jal draw_character
 
 li $t1, PLATFORM_ADDRESS_1_1
@@ -225,9 +225,6 @@ gravity:
     addi $sp, $sp, 4
     jr $ra
 
-ignore_gravity: # Do nothing case
-    jr $ra
-
 ###########################
 ##  KEYBOARD CONTROLLER  ##
 ###########################
@@ -274,8 +271,11 @@ respond_to_w:
     lw $t1, -240($s1)
     beq $t0, $t1, return_func
 
+    li $t2, 2           
+    blt $s6, $t2, jump  # If the character has not jumped twice since landing, jump. Otherwise, do nothing
+
     # j move_up
-    j jump
+    # j jump
 
     jr $ra
 
@@ -322,8 +322,8 @@ respond_to_s:
     lw $t0, 256($t2)
     lw $t1, 272($t2)
     li $t2 0x6bad00 # lime
-    beq $t0, $t2, return_func   # If unit below character is green, return without moving down
-    beq $t1, $t2, return_func
+    beq $t0, $t2, touching_platform   # If unit below character is green, set jump counter ($s6) to 0 and return without moving down
+    beq $t1, $t2, touching_platform
     
     j move_down # Move down
 
@@ -416,6 +416,8 @@ jump:
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     
+    addi $s6, $s6, 1    # Increment the jump counter
+
     jal move_up             # One jump takes the player up 7 pixels
     jal animation_sleep
     jal move_up
@@ -464,6 +466,9 @@ clear_screen:
         beq $t2, $t1, return_func
         j clear_screen_loop
 
+touching_platform:
+    li $s6, 0
+    jr $ra
 
 return_func:    # Return any function. Assumes function was called with jal.
     jr $ra
