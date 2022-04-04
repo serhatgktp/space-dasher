@@ -42,7 +42,7 @@
 # $s2 -> 
 # $s3 -> 
 # $s4 -> 
-# $s5 -> 
+# $s5 -> Level indicator
 # $s6 -> Has the character double-jumped since it last landed? (Boolean to prevent jumping more than twice)
 # $s7 -> Loop counter
 
@@ -53,9 +53,13 @@
 .eqv ROW_LENGTH   256           # Row length
 .eqv CHARACTER_START_ADDRESS 0x10008f0c
 .eqv PLATFORM_ADDRESS_1_1 0x1000a00c    # 32 rows below base address
-.eqv PLATFORM_ADDRESS_1_2 0x1000ab3c    # 32 rows below base address
-.eqv PLATFORM_ADDRESS_1_3 0x1000ac74    # 32 rows below base address
-.eqv PLATFORM_ADDRESS_1_4 0x1000a8b0    # 32 rows below base address
+.eqv PLATFORM_ADDRESS_1_2 0x1000ab3c    
+.eqv PLATFORM_ADDRESS_1_3 0x1000ac74    
+.eqv PLATFORM_ADDRESS_1_4 0x1000a8b0    
+.eqv PLATFORM_ADDRESS_2_1 0x1000a00c    
+.eqv PLATFORM_ADDRESS_2_2 0x1000ab3c    
+.eqv PLATFORM_ADDRESS_2_3 0x1000ac74    
+.eqv PLATFORM_ADDRESS_2_4 0x1000a8b0    
 .eqv GRAVITY_TIMER 3           # How many seconds should pass between each gravity tick
 .eqv BACKGROUND_COLOR 0x000000  # Black
 
@@ -87,25 +91,25 @@ li $s7, 0   # Loop counter
 li $s6 0    # Player jump counter
 jal draw_character
 
-li $t1, PLATFORM_ADDRESS_1_1
-addi $sp, $sp, -4
-sw $t1, 0($sp)      # Push platform base address to $sp
-jal draw_platform_short
 
+#**********
+# LEVEL 1 *
+#**********
+
+li $t1, PLATFORM_ADDRESS_1_1    # Push address of each platform to $sp
+addi $sp, $sp, -4
+sw $t1, 0($sp)
 li $t1, PLATFORM_ADDRESS_1_2
 addi $sp, $sp, -4
-sw $t1, 0($sp)      # Push platform base address to $sp
-jal draw_platform_short
-
+sw $t1, 0($sp)
 li $t1, PLATFORM_ADDRESS_1_3
 addi $sp, $sp, -4
-sw $t1, 0($sp)      # Push platform base address to $sp
-jal draw_platform_short
-
+sw $t1, 0($sp)
 li $t1, PLATFORM_ADDRESS_1_4
 addi $sp, $sp, -4
-sw $t1, 0($sp)      # Push platform base address to $sp
-jal draw_platform_short
+sw $t1, 0($sp)
+
+jal draw_level  # Draw platforms
 
 # Main Loop
 main_game_loop:
@@ -213,6 +217,23 @@ draw_platform_short:
     sw $t0, 280($t1)
     jr $ra
 
+#################
+## DRAW LEVELS ##
+#################
+
+draw_level:
+
+    move $t9, $ra   # Store current $ra in $t9
+
+    jal draw_platform_short # Draw platform 4
+    jal draw_platform_short # Draw platform 3
+    jal draw_platform_short # Draw platform 2  
+    jal draw_platform_short # Draw platform 1
+
+    move $ra, $t9   # Restore saved $ra
+
+    jr $ra
+
 #############
 ## GRAVITY ##
 #############
@@ -221,7 +242,7 @@ gravity:
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     jal respond_to_s
-    lw $ra, 0($sp)  # Load current $ra
+    lw $ra, 0($sp)  # Load saved $ra
     addi $sp, $sp, 4
     jr $ra
 
@@ -365,7 +386,7 @@ move_up:
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     jal delete_character
-    lw $ra, 0($sp)  # Load current $ra
+    lw $ra, 0($sp)  # Load saved $ra
     addi $sp, $sp, 4
 
     # draw new character
@@ -378,7 +399,7 @@ move_left:
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     jal delete_character
-    lw $ra, 0($sp)  # Load current $ra
+    lw $ra, 0($sp)  # Load saved $ra
     addi $sp, $sp, 4
 
     # draw new character
@@ -391,7 +412,7 @@ move_down:
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     jal delete_character
-    lw $ra, 0($sp)  # Load current $ra
+    lw $ra, 0($sp)  # Load saved $ra
     addi $sp, $sp, 4
 
     # draw new character
@@ -404,7 +425,7 @@ move_right:
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     jal delete_character
-    lw $ra, 0($sp)  # Load current $ra
+    lw $ra, 0($sp)  # Load saved $ra
     addi $sp, $sp, 4
 
     # draw new character
@@ -431,7 +452,7 @@ jump:
     jal move_up
     jal animation_sleep
     
-    lw $ra, 0($sp)  # Load current $ra
+    lw $ra, 0($sp)  # Load saved $ra
     addi $sp, $sp, 4
     jr $ra
 
@@ -472,6 +493,8 @@ touching_platform:
 
 return_func:    # Return any function. Assumes function was called with jal.
     jr $ra
+
+
 
 ###################
 ##  END PROGRAM  ##
