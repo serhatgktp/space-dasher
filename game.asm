@@ -38,6 +38,9 @@
 .eqv MS_PER_FRAME 33            # Miliseconds to sleep after each loop
 # .eqv MS_PER_FRAME 250
 .eqv ROW_LENGTH   256           # Row length
+.eqv CHARACTER_START_ADDRESS 0x1000850c
+.eqv PLATFORM_ADDRESS_1_1 0x1000a00c    # 32 rows below base address
+.eqv GRAVITY_TIMER 15           # How many seconds should pass before each gravity tick
 
 .data
     padding:	.space	36000   #Empty space to prevent game data from being overwritten due to large bitmap size
@@ -49,7 +52,7 @@
 
 main:
     li $s0, BASE_ADDRESS # $s0 stores the base address for display
-    li $s1, BASE_ADDRESS # $s1 stores the top-left pixel of the character
+    li $s1, CHARACTER_START_ADDRESS # $s1 stores the top-left pixel of the character
 
     #Initial 2 second wait to allow user to prepare by selecting keyboard simulator 
     li $v0 32
@@ -59,9 +62,13 @@ main:
 ###############
 ## MAIN LOOP ##
 ###############
-li $s7, 0
+
+# Pre-loop code
+li $s7, 0   # Loop counter
 la $s6, newline
 jal draw_character
+jal draw_platform_1_1
+# Main Loop
 main_game_loop:
 
     li $v0, 1
@@ -76,6 +83,12 @@ main_game_loop:
     jal check_keypress  # Check if key was pressed and execute respective functions
 
     jal frame_sleep
+
+    li $t0, GRAVITY_TIMER  # 
+    div $s7, $t0
+    mfhi $t0    # Store remainder of loop ctr / 10 in $t0
+    bne $t0, $zero, main_game_loop  # If $s7 (loop ctr) is a multiple of 10, apply gravity. Otherwise, ignore gravity
+    jal gravity
 
     j main_game_loop
 
@@ -135,10 +148,55 @@ delete_character:
     sw $t0, 1296($s1)
     jr $ra
 
+####################
+## DRAW PLATFORMS ##
+####################
+
+draw_platform_1_1:
+    li $t0 0x6bad00 # lime
+    li $t1 PLATFORM_ADDRESS_1_1
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    sw $t0, 12($t1)
+    sw $t0, 16($t1)
+    sw $t0, 20($t1)
+    sw $t0, 24($t1)
+    sw $t0, 256($t1)
+    sw $t0, 260($t1)
+    sw $t0, 264($t1)
+    sw $t0, 268($t1)
+    sw $t0, 272($t1)
+    sw $t0, 276($t1)
+    sw $t0, 280($t1)
+    jr $ra
+
+#############
+## GRAVITY ##
+#############
+
+gravity:
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)  # Store current $ra
+    jal respond_to_s
+    lw $ra, 0($sp)  # Load current $ra
+    addi $sp, $sp, 4
+    jr $ra
+
+ignore_gravity: # Do nothing case
+    jr $ra
+
 ###########################
 ##  KEYBOARD CONTROLLER  ##
 ###########################
 
+# Check for keypress
+check_keypress:
+    li $t9, 0xffff0000
+    lw $t8, 0($t9)
+    beq $t8, 1, keypress_happened
+    jr $ra
+    
 keypress_happened:
     li $t9, 0xffff0000
     lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
@@ -172,6 +230,7 @@ respond_to_a:
     jr $ra
 
 respond_to_s:
+    # Check if character at bottom of screen
     li $t1, ROW_LENGTH
     li $t9 4
     div $t8, $t1, $t9
@@ -181,7 +240,17 @@ respond_to_s:
     addi $t0, $t0, BASE_ADDRESS # $t0 contains the address of the bottom-left pixel of the screen
 
     add $t2, $s1, 1280  # Store address bottom-left pixel of the character in $t2
-    blt $t2, $t0, move_down
+    # blt $t2, $t0, move_down
+    bge $t2, $t0, return_func   # If character is at bottom row, return without moving down
+    
+    # Check if character touching platform from above
+    lw $t0, 256($t2)
+    lw $t1, 272($t2)
+    li $t2 0x6bad00 # lime
+    beq $t0, $t2, return_func   # If unit below character is green, return without moving down
+    beq $t1, $t2, return_func
+    
+    j move_down # Move down
 
     jr $ra
 
@@ -254,13 +323,6 @@ move_right:
 ##  MISC  ##
 ############
 
-# Check for keypress
-check_keypress:
-    li $t9, 0xffff0000
-    lw $t8, 0($t9)
-    beq $t8, 1, keypress_happened
-    jr $ra
-
 # Sleep for duration MS_PER_FRAME
 frame_sleep:
     li $a0 MS_PER_FRAME
@@ -268,6 +330,9 @@ frame_sleep:
     syscall
     jr $ra
     # j main_game_loop
+
+return_func:    # Return any function. Assumes function was called with jal.
+    jr $ra
 
 ###################
 ##  END PROGRAM  ##
