@@ -52,20 +52,14 @@
 # .eqv MS_PER_FRAME 250
 .eqv ROW_LENGTH   256           # Row length
 .eqv CHARACTER_START_ADDRESS 0x10008f0c
-.eqv PLATFORM_ADDRESS_1_1 0x1000a00c    # 32 rows below base address
-.eqv PLATFORM_ADDRESS_1_2 0x1000ab3c    
-.eqv PLATFORM_ADDRESS_1_3 0x1000ac74    
-.eqv PLATFORM_ADDRESS_1_4 0x1000a8b0    
-.eqv PLATFORM_ADDRESS_2_1 0x1000a00c    
-.eqv PLATFORM_ADDRESS_2_2 0x1000ab3c    
-.eqv PLATFORM_ADDRESS_2_3 0x1000ac74    
-.eqv PLATFORM_ADDRESS_2_4 0x1000a8b0    
 .eqv GRAVITY_TIMER 3           # How many seconds should pass between each gravity tick
 .eqv BACKGROUND_COLOR 0x000000  # Black
 
 .data
     padding:	.space	36000   #Empty space to prevent game data from being overwritten due to large bitmap size
     newline:    .asciiz "\n"
+    level_1_platforms:    .word 0x1000a00c, 0x1000ab3c, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
+    level_2_platforms:    .word 0x1000a00c, 0x1000ab3c, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
 
 .text
 
@@ -95,21 +89,11 @@ jal draw_character
 #**********
 # LEVEL 1 *
 #**********
+la $t0, level_1_platforms   # Load address of first element of level 1 platforms array into $t0
+addi $sp, $sp, -4
+sw $t0, 0($sp)  # Push address of first element onto stack as parameter for load_level
+jal load_level  # Load level 1
 
-li $t1, PLATFORM_ADDRESS_1_1    # Push address of each platform to $sp
-addi $sp, $sp, -4
-sw $t1, 0($sp)
-li $t1, PLATFORM_ADDRESS_1_2
-addi $sp, $sp, -4
-sw $t1, 0($sp)
-li $t1, PLATFORM_ADDRESS_1_3
-addi $sp, $sp, -4
-sw $t1, 0($sp)
-li $t1, PLATFORM_ADDRESS_1_4
-addi $sp, $sp, -4
-sw $t1, 0($sp)
-
-jal draw_level  # Draw platforms
 
 # Main Loop
 main_game_loop:
@@ -217,6 +201,17 @@ draw_platform_short:
     sw $t0, 280($t1)
     jr $ra
 
+draw_platform_tiny:
+    li $t0 0x1aadab # cyan
+
+    lw $t1, 0($sp)      # Pop platform address from $sp
+    addi $sp, $sp, 4
+
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    jr $ra
+
 #################
 ## DRAW LEVELS ##
 #################
@@ -225,6 +220,7 @@ draw_level:
 
     move $t9, $ra   # Store current $ra in $t9
 
+    jal draw_platform_tiny  # Draw winning platform
     jal draw_platform_short # Draw platform 4
     jal draw_platform_short # Draw platform 3
     jal draw_platform_short # Draw platform 2  
@@ -232,6 +228,48 @@ draw_level:
 
     move $ra, $t9   # Restore saved $ra
 
+    jr $ra
+
+advance_level:
+    li $s6, 0
+    jal clear_screen
+    jal draw_character
+
+load_level:
+    lw $t1 0($sp)       # Pop address of first platform from stack
+    addi $sp, $sp, 4
+
+    addi $sp, $sp, -4   # Store current $ra in $sp
+    sw $ra, 0($sp)
+
+    lw $t2, 0($t1)      # Store each platform base address on the stack
+    addi $sp, $sp, -4
+    sw $t2, 0($sp)
+
+    addi $t1, $t1, 4    # Increment $t1 to point to the next element in the array
+    lw $t2, 0($t1)
+    addi $sp, $sp, -4
+    sw $t2, 0($sp)
+
+    addi $t1, $t1, 4
+    lw $t2, 0($t1)
+    addi $sp, $sp, -4
+    sw $t2, 0($sp)
+
+    addi $t1, $t1, 4
+    lw $t2, 0($t1)
+    addi $sp, $sp, -4
+    sw $t2, 0($sp)
+
+    addi $t1, $t1, 4
+    lw $t2, 0($t1)
+    addi $sp, $sp, -4
+    sw $t2, 0($sp)
+
+    jal draw_level  # Draw platforms (pops from $sp 5 times)
+    
+    lw $ra, 0($sp)   # Restore saved $ra
+    addi $sp, $sp, 4
     jr $ra
 
 #############
@@ -345,6 +383,11 @@ respond_to_s:
     li $t2 0x6bad00 # lime
     beq $t0, $t2, touching_platform   # If unit below character is green, set jump counter ($s6) to 0 and return without moving down
     beq $t1, $t2, touching_platform
+    
+    # Check if character standing on winning platform
+    li $t2 0x1aadab # cyan
+    beq $t0, $t2, advance_level   # If unit below character is cyan, set jump counter ($s6) to 0 and proceed to the next level
+    beq $t1, $t2, advance_level
     
     j move_down # Move down
 
