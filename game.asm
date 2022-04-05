@@ -43,7 +43,7 @@
 # $s3 -> 
 # $s4 -> 
 # $s5 -> Level indicator
-# $s6 -> Has the character double-jumped since it last landed? (Boolean to prevent jumping more than twice)
+# $s6 -> Jump counter (Used to prevent jumping more than twice without landing)
 # $s7 -> Loop counter
 
 
@@ -59,7 +59,7 @@
     padding:	.space	36000   #Empty space to prevent game data from being overwritten due to large bitmap size
     newline:    .asciiz "\n"
     level_1_platforms:    .word 0x1000a00c, 0x1000ab3c, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
-    level_2_platforms:    .word 0x1000a00c, 0x1000ab3c, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
+    level_2_platforms:    .word 0x1000b90c, 0x1000b660, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
 
 .text
 
@@ -81,8 +81,10 @@ main:
 # Pre-loop code
 jal clear_screen
 
+li $s5, 0   # Level counter
+li $s6, 0   # Player jump counter
 li $s7, 0   # Loop counter
-li $s6 0    # Player jump counter
+
 jal draw_character
 
 
@@ -231,9 +233,32 @@ draw_level:
     jr $ra
 
 advance_level:
-    li $s6, 0
+    addi $s5, $s5, 1    # Increment level counter
+    li $s6, 0   # Reset jump counter
     jal clear_screen
+    li $s1, CHARACTER_START_ADDRESS # Reset character location
     jal draw_character
+    li $t0, 2
+    
+    beq $s5, $t0, level_3   # If level counter ($s5) is 2, advance to level 3
+    
+    level_2:
+
+        li $t0, BASE_ADDRESS    # DEBUG
+        li $t1, 0xff0000    # red
+        sw $t1, 0($t0)
+
+        la $t0, level_2_platforms   # Push level 2 platforms array to stack
+        addi $sp, $sp, -4
+        sw $t0, 0($sp)
+        jal load_level  # Load level 2
+        
+        jal level_sleep
+
+        j main_game_loop    # Return to main loop
+
+    level_3:
+
 
 load_level:
     lw $t1 0($sp)       # Pop address of first platform from stack
@@ -319,22 +344,8 @@ keypress_happened:
     jr $ra
 
 respond_to_w:
-    li $t1, ROW_LENGTH
-    add $t0, $s0, $t1 # Points to the first pixel of the second row
-    # bge $s1, $t0, move_up   # Check that the character is not currently at the top row
-    blt $s1, $t0, return_func   # If the character is currently at the top row, return without moving up
-
-    li $t0 0x6bad00 # lime      # Check if this color is stored above the character. Return without moving if it is
-    lw $t1, -256($s1)
-    beq $t0, $t1, return_func
-    lw $t1, -240($s1)
-    beq $t0, $t1, return_func
-
     li $t2, 2           
     blt $s6, $t2, jump  # If the character has not jumped twice since landing, jump. Otherwise, do nothing
-
-    # j move_up
-    # j jump
 
     jr $ra
 
@@ -346,6 +357,20 @@ respond_to_a:
     blt $t0, 3, return_func   # If the character is touching the left of the screen, return without moving left
 
     li $t1 0x6bad00 # lime      # Check if this color is stored on the left of the character. Return without moving if it is
+    lw $t0, -4($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 252($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 508($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 764($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 1020($s1)
+    beq $t0, $t1, return_func
+    lw $t0, 1276($s1)
+    beq $t0, $t1, return_func
+
+    li $t1 0x1aadab # cyan      # Check if this color is stored on the left of the character. Return without moving if it is
     lw $t0, -4($s1)
     beq $t0, $t1, return_func
     lw $t0, 252($s1)
@@ -416,6 +441,20 @@ respond_to_d:
     lw $t0, 1284($t2)
     beq $t0, $t9, return_func
 
+    li $t9 0x1aadab # cyan      # Check if this color is stored on the left of the character. Return without moving if it is
+    lw $t0, 4($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 260($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 516($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 772($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 1028($t2)
+    beq $t0, $t9, return_func
+    lw $t0, 1284($t2)
+    beq $t0, $t9, return_func
+
     j move_right
 
     jr $ra
@@ -425,6 +464,25 @@ respond_to_d:
 ################
 
 move_up:
+    # ----- Boundary Logic START ----- #
+    li $t1, ROW_LENGTH
+    addi $t0, $t1, BASE_ADDRESS # Points to the first pixel of the second row
+    # bge $s1, $t0, move_up   # Check that the character is not currently at the top row
+    blt $s1, $t0, return_func   # If the character is currently at the top row, return without moving up
+
+    li $t0 0x6bad00 # lime      # Check if this color is stored above the character. Return without moving if it is
+    lw $t1, -256($s1)
+    beq $t0, $t1, return_func
+    lw $t1, -240($s1)
+    beq $t0, $t1, return_func
+
+    li $t0 0x1aadab # cyan      # Check if this color is stored on the left of the character. Return without moving if it is
+    lw $t1, -256($s1)
+    beq $t0, $t1, return_func
+    lw $t1, -240($s1)
+    beq $t0, $t1, return_func
+    # ----- Boundary Logic END ----- #
+
     # delete old character
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
@@ -482,7 +540,7 @@ jump:
     
     addi $s6, $s6, 1    # Increment the jump counter
 
-    jal move_up             # One jump takes the player up 7 pixels
+    jal move_up         # One jump takes the player up 7 pixels
     jal animation_sleep
     jal move_up
     jal animation_sleep
@@ -513,7 +571,13 @@ frame_sleep:
     # j main_game_loop
 
 animation_sleep:
-    li $a0 10    # Sleep for 5 seconds between each animation frame
+    li $a0 10    # Sleep for 10 ms between each animation frame
+    li $v0, 32
+    syscall
+    jr $ra
+
+level_sleep:
+    li $a0 1000    # Sleep for 2 seconds between each level
     li $v0, 32
     syscall
     jr $ra
