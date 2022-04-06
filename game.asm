@@ -18,9 +18,9 @@
 #
 # Which approved features have been implemented for milestone 3?
 # (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
-# 2. (fill in the feature, if any)
-# 3. (fill in the feature, if any)
+# 1. Double jumping	+
+# 2. Multiple levels	-
+# 3. 
 # ... (add more if necessary)
 #
 # Link to video demonstration for final submission:
@@ -59,7 +59,8 @@
     padding:	.space	36000   #Empty space to prevent game data from being overwritten due to large bitmap size
     newline:    .asciiz "\n"
     level_1_platforms:    .word 0x1000a00c, 0x1000ab3c, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
-    level_2_platforms:    .word 0x1000b90c, 0x1000b660, 0x1000ac74, 0x1000a8b0, 0x1000a8f4
+    level_2_platforms:    .word 0x1000b90c, 0x1000b650, 0x1000ac74, 0x1000a4ac, 0x1000a2f4
+    level_3_platforms:    .word 0x1000b90c, 0x1000b440, 0x1000ab0c, 0x1000a240, 0x1000b9dc
 
 .text
 
@@ -68,7 +69,7 @@
 main:
     li $s0, BASE_ADDRESS # $s0 stores the base address for display
     li $s1, CHARACTER_START_ADDRESS # $s1 stores the top-left pixel of the character
-
+    addi $s1, $s1, 1792
     #Initial 2 second wait to allow user to prepare by selecting keyboard simulator 
     li $v0 32
     li $a0 2000
@@ -78,7 +79,7 @@ main:
 ## MAIN LOOP ##
 ###############
 
-# Pre-loop code
+# --- Pre-loop code --- #
 jal clear_screen
 
 li $s5, 0   # Level counter
@@ -88,9 +89,7 @@ li $s7, 0   # Loop counter
 jal draw_character
 
 
-#**********
-# LEVEL 1 *
-#**********
+# Load level 1
 la $t0, level_1_platforms   # Load address of first element of level 1 platforms array into $t0
 addi $sp, $sp, -4
 sw $t0, 0($sp)  # Push address of first element onto stack as parameter for load_level
@@ -237,27 +236,42 @@ advance_level:
     li $s6, 0   # Reset jump counter
     jal clear_screen
     li $s1, CHARACTER_START_ADDRESS # Reset character location
-    jal draw_character
     li $t0, 2
     
     beq $s5, $t0, level_3   # If level counter ($s5) is 2, advance to level 3
+    li $t0, 3
+    beq $s5, $t0, win_condition # If level counter ($s5) is 3, display winning screen
     
     level_2:
-
-        li $t0, BASE_ADDRESS    # DEBUG
-        li $t1, 0xff0000    # red
-        sw $t1, 0($t0)
+        addi $s1, $s1, 7680 # Lower character 10 rows from default starting position
+        jal draw_character
 
         la $t0, level_2_platforms   # Push level 2 platforms array to stack
         addi $sp, $sp, -4
         sw $t0, 0($sp)
         jal load_level  # Load level 2
         
-        jal level_sleep
+        # jal level_sleep
 
         j main_game_loop    # Return to main loop
 
     level_3:
+        addi $s1, $s1, 8448 # Lower character 11 rows from default starting position
+        jal draw_character
+
+        la $t0, level_3_platforms   # Push level 2 platforms array to stack
+        addi $sp, $sp, -4
+        sw $t0, 0($sp)
+        jal load_level  # Load level 3
+        
+        # jal level_sleep
+
+        j main_game_loop    # Return to main loop
+
+    win_condition:
+        jal clear_screen
+        # Draw win screen here
+        j end_program
 
 
 load_level:
@@ -340,6 +354,9 @@ keypress_happened:
     # Use 'z' to exit game
     beq $t2, 0x7A, end_program # ASCII code of 'z' is 0x7A
     beq $t2, 0x5A, end_program # ASCII code of 'Z' is 0x5A
+
+    # Use '>' to advance level (cheat code)
+    beq $t2, 0x3E, advance_level # ASCII code of '>' is 0x3E
 
     jr $ra
 
