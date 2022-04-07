@@ -270,6 +270,7 @@ advance_level:
 
     win_condition:
         jal clear_screen
+        j victory
         # Draw win screen here
         j end_program
 
@@ -618,7 +619,192 @@ touching_platform:
 return_func:    # Return any function. Assumes function was called with jal.
     jr $ra
 
+#########
+## ART ##
+#########
 
+# victory:
+
+
+victory:
+    # G
+    li $t0, BASE_ADDRESS
+    addi $t0, $t0, 3112 # 3072 + 40 (row 13, column 11)
+	li $t1, 0xffffff    # white
+
+	sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+	sw $t1, 256($t0)
+	sw $t1, 512($t0)
+	sw $t1, 768($t0)
+	sw $t1, 1024($t0)
+	sw $t1, 1280($t0)
+	sw $t1, 1536($t0)
+	sw $t1, 1540($t0)
+	sw $t1, 1544($t0)
+	sw $t1, 1548($t0)
+	sw $t1, 1552($t0)
+    sw $t1, 1296($t0)
+    sw $t1, 1040($t0)
+    sw $t1, 784($t0)
+    sw $t1, 780($t0)
+    sw $t1, 776($t0)
+
+    # A
+    addi $t0, $t0, 24   # (row 13, column 17)
+    sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+	sw $t1, 1296($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 780($t0)
+    sw $t1, 776($t0)
+    sw $t1, 772($t0)
+
+    # M
+    addi $t0, $t0, 24   # (row 13, column 23)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+    sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+	sw $t1, 1296($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 260($t0)
+    sw $t1, 520($t0)
+    sw $t1, 268($t0)
+
+    # E
+    addi $t0, $t0, 24   # (row 13, column 29)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 772($t0)
+    sw $t1, 776($t0)
+    sw $t1, 780($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1540($t0)
+    sw $t1, 1544($t0)
+    sw $t1, 1548($t0)
+    sw $t1, 1552($t0)
+
+    # O
+
+    addi $t0, $t0, 2280   # (row 21, column 23)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+	sw $t1, 1296($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 1540($t0)
+    sw $t1, 1544($t0)
+    sw $t1, 1548($t0)
+
+    # V
+    addi $t0, $t0, 24   # (row 21, column 29)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+    sw $t1, 1284($t0)
+    sw $t1, 1544($t0)
+    sw $t1, 1292($t0)
+
+    # E (recycled)
+    addi $t0, $t0, 24   # (row 21, column 35)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 772($t0)
+    sw $t1, 776($t0)
+    sw $t1, 780($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1540($t0)
+    sw $t1, 1544($t0)
+    sw $t1, 1548($t0)
+    sw $t1, 1552($t0)
+
+    # R
+    addi $t0, $t0, 24   # (row 21, column 35)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 780($t0)
+    sw $t1, 776($t0)
+    sw $t1, 772($t0)
+    sw $t1, 1032($t0)
+    sw $t1, 1292($t0)
+    sw $t1, 1552($t0)
+
+
+    j end_program
 
 ###################
 ##  END PROGRAM  ##
