@@ -361,6 +361,23 @@ keypress_happened:
 
     jr $ra
 
+check_keypress_game_over:
+    li $t9, 0xffff0000
+    lw $t8, 0($t9)
+    beq $t8, 1, keypress_happened_game_over
+    jr $ra
+
+keypress_happened_game_over:
+    # Use 'p' to restart game
+    beq $t2, 0x70, main # ASCII code of 'p' is 0x70
+    beq $t2, 0x50, main # ASCII code of 'P' is 0x50
+
+    # Use 'z' to exit game
+    beq $t2, 0x7A, end_program # ASCII code of 'z' is 0x7A
+    beq $t2, 0x5A, end_program # ASCII code of 'Z' is 0x5A
+
+    jr $ra
+
 respond_to_w:
     li $t2, 2           
     blt $s6, $t2, jump  # If the character has not jumped twice since landing, jump. Otherwise, do nothing
@@ -600,6 +617,22 @@ level_sleep:
     syscall
     jr $ra
 
+game_over_loop: # Wait until the player restarts or quits the game
+    li $v0, 1
+    add $a0, $s7, $zero
+    syscall
+    addi $s7, $s7, 1
+
+    li $v0, 4
+    la $a0, newline
+    syscall
+
+    jal check_keypress_game_over  # Only checks for restart and quit
+
+    jal frame_sleep
+
+    j game_over_loop
+
 # Clear screen
 clear_screen:
     li $t0, BACKGROUND_COLOR
@@ -623,10 +656,138 @@ return_func:    # Return any function. Assumes function was called with jal.
 ## ART ##
 #########
 
-# victory:
-
-
 victory:
+    # Y
+    li $t0, BASE_ADDRESS
+    addi $t0, $t0, 3112 # 3072 + 40 (row 13, column 11)
+	li $t1, 0xffffff    # white
+
+	sw $t1, 0($t0)
+    sw $t1, 16($t0)
+    sw $t1, 260($t0)
+    sw $t1, 268($t0)
+    sw $t1, 520($t0)
+    sw $t1, 776($t0)
+    sw $t1, 1032($t0)
+    sw $t1, 1288($t0)
+    sw $t1, 1544($t0)
+
+    # O
+    addi $t0, $t0, 24   # (row 13, column 17)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+	sw $t1, 1296($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 1540($t0)
+    sw $t1, 1544($t0)
+    sw $t1, 1548($t0)
+
+    # U
+    addi $t0, $t0, 24   # (row 13, column 23)
+    sw $t1, 0($t0)
+	sw $t1, 256($t0)
+	sw $t1, 512($t0)
+	sw $t1, 768($t0)
+	sw $t1, 1024($t0)
+	sw $t1, 1280($t0)
+	sw $t1, 1536($t0)
+	sw $t1, 1540($t0)
+	sw $t1, 1544($t0)
+	sw $t1, 1548($t0)
+	sw $t1, 1552($t0)
+    sw $t1, 1296($t0)
+    sw $t1, 1040($t0)
+    sw $t1, 784($t0)
+    sw $t1, 528($t0)
+    sw $t1, 272($t0)
+    sw $t1, 16($t0)
+
+    # W
+    addi $t0, $t0, 2304   # (row 21, column 29)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+	sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+	sw $t1, 1296($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 1284($t0)
+    sw $t1, 1032($t0)
+    sw $t1, 776($t0)
+    sw $t1, 1292($t0)
+
+    # I
+    addi $t0, $t0, 24   # (row 13, column 23)
+    sw $t1, 0($t0)
+	sw $t1, 4($t0)
+	sw $t1, 8($t0)
+	sw $t1, 12($t0)
+	sw $t1, 16($t0)
+    sw $t1, 1536($t0)
+    sw $t1, 1540($t0)
+    sw $t1, 1544($t0)
+    sw $t1, 1548($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 264($t0)
+    sw $t1, 520($t0)
+    sw $t1, 776($t0)
+    sw $t1, 1032($t0)
+    sw $t1, 1288($t0)
+
+    # N
+    addi $t0, $t0, 24   # (row 13, column 23)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1280($t0)
+    sw $t1, 1536($t0)
+    sw $t1, 16($t0)
+    sw $t1, 272($t0)
+    sw $t1, 528($t0)
+    sw $t1, 784($t0)
+    sw $t1, 1040($t0)
+	sw $t1, 1296($t0)
+    sw $t1, 1552($t0)
+    sw $t1, 260($t0)
+    sw $t1, 520($t0)
+    sw $t1, 780($t0)
+    sw $t1, 1040($t0)
+
+    # !
+    addi $t0, $t0, 24   # (row 13, column 23)
+    sw $t1, 0($t0)
+    sw $t1, 256($t0)
+    sw $t1, 512($t0)
+    sw $t1, 768($t0)
+    sw $t1, 1024($t0)
+    sw $t1, 1536($t0)
+
+    j end_program
+
+
+defeat:
     # G
     li $t0, BASE_ADDRESS
     addi $t0, $t0, 3112 # 3072 + 40 (row 13, column 11)
@@ -804,7 +965,7 @@ victory:
     sw $t1, 1552($t0)
 
 
-    j end_program
+    j game_over_loop
 
 ###################
 ##  END PROGRAM  ##
