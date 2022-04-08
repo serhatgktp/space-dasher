@@ -638,6 +638,12 @@ keypress_happened:
     beq $t2, 0x53, respond_to_s # ASCII code of 'S' is 0x53
     beq $t2, 0x44, respond_to_d # ASCII code of 'D' is 0x44
 
+    beq $t2, 0x65, respond_to_e # ASCII code of 'e' is 0x65
+    beq $t2, 0x45, respond_to_e # ASCII code of 'E' is 0x45
+    
+    beq $t2, 0x71, respond_to_q # ASCII code of 'q' is 0x71
+    beq $t2, 0x51, respond_to_q # ASCII code of 'Q' is 0x51
+
     # Use 'p' to restart game
     beq $t2, 0x70, main # ASCII code of 'p' is 0x70
     beq $t2, 0x50, main # ASCII code of 'P' is 0x50
@@ -829,6 +835,121 @@ respond_to_d:
 
     jr $ra
 
+respond_to_q:   # Dash to the right!
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)  # Store current $ra
+    
+    li $t4, 0xffffff    # white
+
+    jal respond_to_a
+    sw $t4, 20($s1)
+    sw $t4, 532($s1)
+    sw $t4, 1044($s1)
+    jal animation_sleep
+    jal animation_sleep
+    jal respond_to_a
+    sw $t4, 20($s1)
+    sw $t4, 532($s1)
+    sw $t4, 1044($s1)
+    jal animation_sleep
+    jal animation_sleep
+    jal respond_to_a
+    sw $t4, 20($s1)
+    sw $t4, 532($s1)
+    sw $t4, 1044($s1)
+    jal animation_sleep
+    jal animation_sleep
+    jal respond_to_a
+    sw $t4, 20($s1)
+    sw $t4, 532($s1)
+    sw $t4, 1044($s1)
+    jal animation_sleep
+    
+    li $t0, 0x000000    # black
+    sw $t0, 32($s1)
+    sw $t0, 544($s1)
+    sw $t0, 1056($s1)
+    jal animation_sleep
+    sw $t0, 28($s1)
+    sw $t0, 540($s1)
+    sw $t0, 1052($s1)
+    jal animation_sleep
+    sw $t0, 24($s1)
+    sw $t0, 536($s1)
+    sw $t0, 1048($s1)
+    jal animation_sleep
+    sw $t0, 20($s1)
+    sw $t0, 532($s1)
+    sw $t0, 1044($s1)
+
+    lw $ra, 0($sp)  # Load saved $ra
+    addi $sp, $sp, 4
+
+    jr $ra
+
+respond_to_e:   # Dash to the right!
+    addi $sp, $sp, -4
+    sw $ra, 0($sp)  # Store current $ra
+    
+    # jal respond_to_d
+    # jal animation_sleep
+    # jal animation_sleep
+    # jal respond_to_d
+    # jal animation_sleep
+    # jal animation_sleep
+    # jal respond_to_d
+    # jal animation_sleep
+    # jal animation_sleep
+    # jal respond_to_d
+
+    li $t4, 0xffffff    # white
+
+    jal respond_to_d
+    sw $t4, -4($s1)
+    sw $t4, 508($s1)
+    sw $t4, 1020($s1)
+    jal animation_sleep
+    jal animation_sleep
+    jal respond_to_d
+    sw $t4, -4($s1)
+    sw $t4, 508($s1)
+    sw $t4, 1020($s1)
+    jal animation_sleep
+    jal animation_sleep
+    jal respond_to_d
+    sw $t4, -4($s1)
+    sw $t4, 508($s1)
+    sw $t4, 1020($s1)
+    jal animation_sleep
+    jal animation_sleep
+    jal respond_to_d
+    sw $t4, -4($s1)
+    sw $t4, 508($s1)
+    sw $t4, 1020($s1)
+    jal animation_sleep
+    
+    li $t0, 0x000000    # black
+    sw $t0, -16($s1)
+    sw $t0, 496($s1)
+    sw $t0, 1008($s1)
+    jal animation_sleep
+    sw $t0, -12($s1)
+    sw $t0, 500($s1)
+    sw $t0, 1012($s1)
+    jal animation_sleep
+    sw $t0, -8($s1)
+    sw $t0, 504($s1)
+    sw $t0, 1016($s1)
+    jal animation_sleep
+    sw $t0, -4($s1)
+    sw $t0, 508($s1)
+    sw $t0, 1020($s1)
+
+    lw $ra, 0($sp)  # Load saved $ra
+    addi $sp, $sp, 4
+
+    jr $ra
+
 ################
 ##  MOVEMENT  ##
 ################
@@ -903,6 +1024,7 @@ move_right:
     addi $s1, $s1, 4
     j draw_character
     jr $ra
+
 
 jump:
     addi $sp, $sp, -4
