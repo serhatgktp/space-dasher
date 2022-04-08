@@ -368,6 +368,9 @@ check_keypress_game_over:
     jr $ra
 
 keypress_happened_game_over:
+    li $t9, 0xffff0000
+    lw $t2, 4($t9) # this assumes $t9 is set to 0xfff0000 from before
+
     # Use 'p' to restart game
     beq $t2, 0x70, main # ASCII code of 'p' is 0x70
     beq $t2, 0x50, main # ASCII code of 'P' is 0x50
@@ -435,7 +438,7 @@ respond_to_s:
 
     add $t2, $s1, 1280  # Store address bottom-left pixel of the character in $t2
     # blt $t2, $t0, move_down
-    bge $t2, $t0, return_func   # If character is at bottom row, return without moving down
+    bge $t2, $t0, defeat   # If character is at bottom row, return without moving down
     
     # Check if character touching platform from above
     lw $t0, 256($t2)
@@ -603,7 +606,6 @@ frame_sleep:
     li $v0, 32
     syscall
     jr $ra
-    # j main_game_loop
 
 animation_sleep:
     li $a0 10    # Sleep for 10 ms between each animation frame
@@ -618,12 +620,12 @@ level_sleep:
     jr $ra
 
 game_over_loop: # Wait until the player restarts or quits the game
-    li $v0, 1
+    li $v0, 1   # Print loop ctr
     add $a0, $s7, $zero
     syscall
-    addi $s7, $s7, 1
+    addi $s7, $s7, 1    # Increment loop ctr
 
-    li $v0, 4
+    li $v0, 4   # Print newline
     la $a0, newline
     syscall
 
@@ -784,10 +786,13 @@ victory:
     sw $t1, 1024($t0)
     sw $t1, 1536($t0)
 
-    j end_program
+    # j end_program
+    j game_over_loop    # Give the option to restart or quit after finishing the game?
 
 
 defeat:
+    # jal clear_screen  # Looks nicer without clearing the screen?
+    
     # G
     li $t0, BASE_ADDRESS
     addi $t0, $t0, 3112 # 3072 + 40 (row 13, column 11)
@@ -963,7 +968,6 @@ defeat:
     sw $t1, 1032($t0)
     sw $t1, 1292($t0)
     sw $t1, 1552($t0)
-
 
     j game_over_loop
 
