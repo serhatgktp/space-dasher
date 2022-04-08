@@ -41,7 +41,7 @@
 # $s1 -> CHARACTER_START_ADDRESS
 # $s2 -> 
 # $s3 -> 
-# $s4 -> 
+# $s4 -> Score counter
 # $s5 -> Level indicator
 # $s6 -> Jump counter (Used to prevent jumping more than twice without landing)
 # $s7 -> Loop counter
@@ -54,6 +54,9 @@
 .eqv CHARACTER_START_ADDRESS 0x10008f0c
 .eqv GRAVITY_TIMER 3           # How many seconds should pass between each gravity tick
 .eqv BACKGROUND_COLOR 0x000000  # Black
+.eqv COIN_1_ADRESS 0x1000a03c   # Left pixel of coin 1
+.eqv COIN_2_ADRESS 0x1000a59c   # Left pixel of coin 2
+.eqv SCORE_ADDRESS 0x1000814c
 
 .data
     padding:	.space	36000   #Empty space to prevent game data from being overwritten due to large bitmap size
@@ -82,6 +85,7 @@ main:
 # --- Pre-loop code --- #
 jal clear_screen
 
+li $s4, 0   # Score counter
 li $s5, 0   # Level counter
 li $s6, 0   # Player jump counter
 li $s7, 0   # Loop counter
@@ -308,8 +312,294 @@ load_level:
 
     jal draw_level  # Draw platforms (pops from $sp 5 times)
     
+    # Draw 2 coins (in the same position) for each level in order to satisfy milestone 1c)
+    li $t0, 0xfaf20d    # Gold
+    li $t1, COIN_1_ADRESS  # Coin 1 address
+    sw $t0, 0($t1)      # left
+    sw $t0, -252($t1)   # top
+    sw $t0, 8($t1)      # right
+    sw $t0, 260($t1)    # bottom
+    
+    li $t1, COIN_2_ADRESS  # Coin 2 address
+    sw $t0, 0($t1)      # left
+    sw $t0, -252($t1)   # top
+    sw $t0, 8($t1)      # right
+    sw $t0, 260($t1)    # bottom
+
+    li $t1, SCORE_ADDRESS
+    jal draw_score    # Draw score portion on right-top of screen
+
+    li $t8, SCORE_ADDRESS
+    addi $t8, $t8, 592
+    li $t7, 0x675c46 # gray - draw coins with gray
+
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+
+    li $t8, SCORE_ADDRESS
+    addi $t8, $t8, 592  # Reset coin position to first coin
+    li $t7, 0xfaf20d    # Set coin color to gold
+    li $t0, 4   # Check if score == 4
+    beq $t0, $s4, draw_score_4
+    li $t0, 3   # Check if score == 3
+    beq $t0, $s4, draw_score_3
+    li $t0, 2   # Check if score == 2
+    beq $t0, $s4, draw_score_2
+    li $t0, 1   # Check if score == 1
+    beq $t0, $s4, draw_score_1
+
+    end_draw:
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        jr $ra
+
+    draw_score_4:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_3:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_2:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_1:
+        jal draw_coin
+    j end_draw
+
+draw_score:
+    li $t0, 0xffffff    # white
+    # li $t1, SCORE_ADDRESS
+    # $t1 contains the address where the score bar will be drawn
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    sw $t0, 256($t1)
+    sw $t0, 512($t1)
+    sw $t0, 516($t1)
+    sw $t0, 520($t1)
+    sw $t0, 776($t1)
+    sw $t0, 1032($t1)
+    sw $t0, 1028($t1)
+    sw $t0, 1024($t1)
+
+    addi $t1, $t1, 16
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    sw $t0, 256($t1)
+    sw $t0, 512($t1)
+    sw $t0, 768($t1)
+    sw $t0, 1024($t1)
+    sw $t0, 1028($t1)
+    sw $t0, 1032($t1)
+
+    addi $t1, $t1, 16
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    sw $t0, 256($t1)
+    sw $t0, 512($t1)
+    sw $t0, 768($t1)
+    sw $t0, 1024($t1)
+    sw $t0, 1028($t1)
+    sw $t0, 1032($t1)
+    sw $t0, 264($t1)
+    sw $t0, 520($t1)
+    sw $t0, 776($t1)
+
+    addi $t1, $t1, 16
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    sw $t0, 256($t1)
+    sw $t0, 512($t1)
+    sw $t0, 768($t1)
+    sw $t0, 1024($t1)
+    sw $t0, 264($t1)
+    sw $t0, 520($t1)
+    sw $t0, 516($t1)
+    sw $t0, 772($t1)
+    sw $t0, 1032($t1)
+
+    addi $t1, $t1, 16
+    sw $t0, 0($t1)
+    sw $t0, 4($t1)
+    sw $t0, 8($t1)
+    sw $t0, 256($t1)
+    sw $t0, 512($t1)
+    sw $t0, 768($t1)
+    sw $t0, 1024($t1)
+    sw $t0, 516($t1)
+    sw $t0, 520($t1)
+    sw $t0, 1028($t1)
+    sw $t0, 1032($t1)
+
+    jr $ra
+
+draw_coin:
+    # $t7 contains color to be filled in place of coin
+    # $t8 contains address of left-pixel of coin
+    sw $t7, 0($t8)      # left
+    sw $t7, -252($t8)   # top
+    sw $t7, 8($t8)      # right
+    sw $t7, 260($t8)    # bottom
+    jr $ra
+
+delete_coin_right:
+
+    addi $sp, $sp, -4   # Store current $ra in $sp
+    sw $ra, 0($sp)
+
+    # li $t0, BACKGROUND_COLOR
+    # $t7 contains color to be filled in place of coin
+    # $t8 contains address of left-pixel of coin
+    sw $t7, 0($t8)      # left
+    sw $t7, -252($t8)   # top
+    sw $t7, 8($t8)      # right
+    sw $t7, 260($t8)    # bottom
+    addi $s4, $s4, 1    # Increment score counter
+
+    # Draw coin in score bar now that $s4 has been incremented
+    li $t8, SCORE_ADDRESS
+    addi $t8, $t8, 592  # Set coin position to first coin
+    li $t7, 0xfaf20d    # Set coin color to gold
+
+    li $t0, 6
+    beq $s4, $t0, add_score_right_6
+    li $t0, 5
+    beq $s4, $t0, add_score_right_5
+    li $t0, 4
+    beq $s4, $t0, add_score_right_4
+    li $t0, 3
+    beq $s4, $t0, add_score_right_3
+    li $t0, 2
+    beq $s4, $t0, add_score_right_2
+    li $t0, 1
+    beq $s4, $t0, add_score_right_1
+    
+    add_score_right_6:
+        addi $t8, $t8, 80
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_right
+    add_score_right_5:
+        addi $t8, $t8, 64
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_right
+    add_score_right_4:
+        addi $t8, $t8, 48
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_right
+    add_score_right_3:
+        addi $t8, $t8, 32
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_right
+    add_score_right_2:
+        addi $t8, $t8, 16
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_right
+    add_score_right_1:
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_right
+
     lw $ra, 0($sp)   # Restore saved $ra
     addi $sp, $sp, 4
+
+    j move_right
+    jr $ra
+
+delete_coin_left:
+
+    addi $sp, $sp, -4   # Store current $ra in $sp
+    sw $ra, 0($sp)
+
+    # li $t0, BACKGROUND_COLOR
+    # $t7 contains color to be filled in place of coin
+    # $t8 contains address of right-pixel of coin
+    sw $t7, 0($t8)      # right
+    sw $t7, -260($t8)   # top
+    sw $t7, -8($t8)     # left
+    sw $t7, 252($t8)    # bottom
+    addi $s4, $s4, 1    # Increment score counter
+
+    # Draw coin in score bar now that $s4 has been incremented
+    li $t8, SCORE_ADDRESS
+    addi $t8, $t8, 592  # Set coin position to first coin
+    li $t7, 0xfaf20d    # Set coin color to gold
+
+    li $t0, 6
+    beq $s4, $t0, add_score_left_6
+    li $t0, 5
+    beq $s4, $t0, add_score_left_5
+    li $t0, 4
+    beq $s4, $t0, add_score_left_4
+    li $t0, 3
+    beq $s4, $t0, add_score_left_3
+    li $t0, 2
+    beq $s4, $t0, add_score_left_2
+    li $t0, 1
+    beq $s4, $t0, add_score_left_1
+    
+    add_score_left_6:
+        addi $t8, $t8, 80
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_left
+    add_score_left_5:
+        addi $t8, $t8, 64
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_left
+    add_score_left_4:
+        addi $t8, $t8, 48
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_left
+    add_score_left_3:
+        addi $t8, $t8, 32
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_left
+    add_score_left_2:
+        addi $t8, $t8, 16
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_left
+    add_score_left_1:
+        jal draw_coin
+        lw $ra, 0($sp)   # Restore saved $ra
+        addi $sp, $sp, 4
+        j move_left
+
+    lw $ra, 0($sp)   # Restore saved $ra
+    addi $sp, $sp, 4
+
+    j move_left
     jr $ra
 
 #############
@@ -422,6 +712,27 @@ respond_to_a:
     lw $t0, 1276($s1)
     beq $t0, $t1, return_func
 
+    li $t1, 0xfaf20d # gold     # Check if this color is stored on the left of the character. Return without moving if it is
+    li $t7, BACKGROUND_COLOR    # Set fill (delete) color for coins to black
+    lw $t0, -4($s1)
+    addi $t8, $s1, -4   # Set $t8 to current address being checked - use $t8 in delete_coin_x
+    beq $t0, $t1, delete_coin_left
+    lw $t0, 252($s1)
+    addi $t8, $s1, 252
+    beq $t0, $t1, delete_coin_left
+    lw $t0, 508($s1)
+    addi $t8, $s1, 508
+    beq $t0, $t1, delete_coin_left
+    lw $t0, 764($s1)
+    addi $t8, $s1, 764
+    beq $t0, $t1, delete_coin_left
+    lw $t0, 1020($s1)
+    addi $t8, $s1, 1020
+    beq $t0, $t1, delete_coin_left
+    lw $t0, 1276($s1)
+    addi $t8, $s1, 1276
+    beq $t0, $t1, delete_coin_left
+
     j move_left
 
     jr $ra
@@ -492,6 +803,27 @@ respond_to_d:
     beq $t0, $t9, return_func
     lw $t0, 1284($t2)
     beq $t0, $t9, return_func
+
+    li $t9 0xfaf20d # gold      # Check if this color is stored on the left of the character. Return without moving if it is
+    li $t7, BACKGROUND_COLOR    # Set fill (delete) color for coins to black
+    lw $t0, 4($t2)
+    addi $t8, $t2, 4            # Set $t8 to current address being checked - use $t8 in delete_coin_x
+    beq $t0, $t9, delete_coin_right
+    lw $t0, 260($t2)
+    addi $t8, $t2, 260
+    beq $t0, $t9, delete_coin_right
+    lw $t0, 516($t2)
+    addi $t8, $t2, 516
+    beq $t0, $t9, delete_coin_right
+    lw $t0, 772($t2)
+    addi $t8, $t2, 772
+    beq $t0, $t9, delete_coin_right
+    lw $t0, 1028($t2)
+    addi $t8, $t2, 1028
+    beq $t0, $t9, delete_coin_right
+    lw $t0, 1284($t2)
+    addi $t8, $t2, 1284
+    beq $t0, $t9, delete_coin_right
 
     j move_right
 
@@ -785,6 +1117,65 @@ victory:
     sw $t1, 768($t0)
     sw $t1, 1024($t0)
     sw $t1, 1536($t0)
+
+    # Print end-of-game score
+    addi $t0, $t0, -120
+    addi $t0, $t0, 5120
+    
+    move $t1, $t0
+    jal draw_score    # Draw score portion on right-top of screen
+
+    move $t8, $t1
+    addi $t8, $t8, 540
+    li $t7, 0x675c46 # gray - draw coins with gray
+
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+    addi $t8, $t8, 16
+    jal draw_coin
+
+    move $t8, $t1
+    addi $t8, $t8, 540  # Reset coin position to first coin
+    li $t7, 0xfaf20d    # Set coin color to gold
+    li $t0, 6   # Check if score == 6
+    beq $t0, $s4, draw_score_end_6
+    li $t0, 5   # Check if score == 5
+    beq $t0, $s4, draw_score_end_5
+    li $t0, 4   # Check if score == 4
+    beq $t0, $s4, draw_score_end_4
+    li $t0, 3   # Check if score == 3
+    beq $t0, $s4, draw_score_end_3
+    li $t0, 2   # Check if score == 2
+    beq $t0, $s4, draw_score_end_2
+    li $t0, 1   # Check if score == 1
+    beq $t0, $s4, draw_score_end_1
+
+    j game_over_loop
+
+    draw_score_end_6:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_end_5:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_end_4:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_end_3:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_end_2:
+        jal draw_coin
+        addi $t8, $t8, 16
+    draw_score_end_1:
+        jal draw_coin
 
     # j end_program
     j game_over_loop    # Give the option to restart or quit after finishing the game?
