@@ -40,7 +40,7 @@
 # $s0 -> BASE_ADDRESS
 # $s1 -> CHARACTER_START_ADDRESS
 # $s2 -> 
-# $s3 -> 
+# $s3 -> Dash counter
 # $s4 -> Score counter
 # $s5 -> Level indicator
 # $s6 -> Jump counter (Used to prevent jumping more than twice without landing)
@@ -85,6 +85,7 @@ main:
 # --- Pre-loop code --- #
 jal clear_screen
 
+li $s3, 0   # Dash counter
 li $s4, 0   # Score counter
 li $s5, 0   # Level counter
 li $s6, 0   # Player jump counter
@@ -237,6 +238,7 @@ draw_level:
 
 advance_level:
     addi $s5, $s5, 1    # Increment level counter
+    li $s3, 0   # Reset dash counter
     li $s6, 0   # Reset jump counter
     jal clear_screen
     li $s1, CHARACTER_START_ADDRESS # Reset character location
@@ -836,6 +838,12 @@ respond_to_d:
     jr $ra
 
 respond_to_q:   # Dash to the right!
+
+    li $t0, 0
+    bgt $s3, $t0, return_func   # Return if dash counter is greater than 0
+
+    addi $s3, $s3, 1    # Increment dash counter
+
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     
@@ -888,6 +896,12 @@ respond_to_q:   # Dash to the right!
     jr $ra
 
 respond_to_e:   # Dash to the right!
+
+    li $t0, 0
+    bgt $s3, $t0, return_func   # Return if dash counter is greater than 0
+
+    addi $s3, $s3, 1    # Increment dash counter
+
     addi $sp, $sp, -4
     sw $ra, 0($sp)  # Store current $ra
     
@@ -1102,6 +1116,7 @@ clear_screen:
         j clear_screen_loop
 
 touching_platform:
+    li $s3, 0
     li $s6, 0
     jr $ra
 
