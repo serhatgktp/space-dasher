@@ -8,6 +8,8 @@ you are likely either a comp-sci student or a recruiter, and you seek technicali
 The objective of the game is to beat all three levels by jumping from one platform to another and reaching the cyan "end-platform".
 Beware! If you fall to the bottom of the level, you lose!
 
+You may also gather golden coins that are scattered across each level to increase your score! If you complete the game, your final score will be displayed on the victory screen.
+
 ## ABILITIES
 
 In addition to being able to move in all directions, our character Steve is able to double-jump, and even dash towards the left or right!
