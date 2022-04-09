@@ -1,4 +1,4 @@
-# GEOMETRY BASH
+# GEOMETRY BASH!
 
 A fun little platformer game written in MIPS assembly language! This is a modest piece of work and leaves much to desire! However, if you are playing this game
 you are likely either a comp-sci student or a recruiter, and you seek technicality within the game rather than enjoyment!
@@ -16,12 +16,17 @@ However, Steve may only jump twice and dash once before landing on a platform.
 ## CONTROLS
 
 Jump - **W**
+
 Descend (faster) - **S**
+
 Move left - **A**
+
 Move right - **D**
 
 Dash left - **Q**
+
 Dash right - **E**
 
 Restart - **P**
+
 Quit - **Z**
