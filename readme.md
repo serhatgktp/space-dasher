@@ -1,4 +1,4 @@
-# GEOMETRY BASH!
+# Space Dasher 👾
 
 A fun little platformer game written in MIPS assembly language! This is a modest piece of work and leaves much to be desired! However, if you are playing this game you are likely either a comp-sci student or a recruiter, and you seek technicality within the game rather than enjoyment!
 
