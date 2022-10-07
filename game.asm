@@ -1,6 +1,6 @@
 #####################################################################
 #
-# CSCB58 Winter 2022 Assembly Final Project
+# CSCB58 Winter 2022 Computer Organization Final Project
 # University of Toronto, Scarborough
 #
 # Student: Efkan Serhat Goktepe, 1005939166, goktepee, serhat.goktepe@mail.utoronto.ca
