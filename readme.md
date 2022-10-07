@@ -4,7 +4,7 @@ A fun little platformer game written in MIPS assembly language! This is a modest
 
 ## SETUP
 
-Run `game.asm` with your assembly interpreter and connect it to a bitmap display that matches the specifications in the assembly code. Then, forward your keyboard inputs to be stored at address `0xffff0000` and voila! You are now running the game.
+Run `game.asm` with your assembly interpreter and connect it to a bitmap display that matches the specifications in the assembly code. Then, forward your keyboard inputs to be stored at address `0xffff0000` and voila! You're all set.
 
 For an all-in-one package, you may install [MARS MIPS Simulator](http://courses.missouristate.edu/kenvollmar/mars/) and simply import game.asm. Then on the top bar navigate to 'Tools > Keyboard and Display MMIO Simulator' and 'Tools > Bitmap Display'.
 Configure your bitmap display settings to match the specifications mentioned in the comments at the top of `game.asm`, and then hit 'Connect to MIPS' on both the keyboard simulator and bitmap display.
@@ -43,8 +43,6 @@ Quit - **Z**
 
 ## IMPLEMENTED FEATURES
 
-- Milestone 1
-- Milestone 2
 - 3A) Score
 - 3B) Fail Condition
 - 3C) Win Condition
