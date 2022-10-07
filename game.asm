@@ -1,9 +1,7 @@
 #####################################################################
 #
 # CSCB58 Winter 2022 Computer Organization Final Project
-# University of Toronto, Scarborough
-#
-# Student: Efkan Serhat Goktepe, 1005939166, goktepee, serhat.goktepe@mail.utoronto.ca
+# University of Toronto
 #
 # Bitmap Display Configuration:
 # - Unit width in pixels: 4 (update this as needed)
@@ -11,26 +9,6 @@
 # - Display width in pixels: 256 (update this as needed)
 # - Display height in pixels: 256 (update this as needed)
 # - Base Address for Display: 0x10008000 ($gp)
-#
-# Which milestones have been reached in this submission?
-# (See the assignment handout for descriptions of the milestones)
-# - Milestone 1/2/3 (choose the one the applies)
-#
-# Which approved features have been implemented for milestone 3?
-# (See the assignment handout for the list of additional features)
-# 1. Double jumping	+
-# 2. Multiple levels	-
-# 3. 
-# ... (add more if necessary)
-#
-# Link to video demonstration for final submission:
-# - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
-#
-# Are you OK with us sharing the video with people outside course staff?
-# - yes / no / yes, and please share this project github link as well!
-#
-# Any additional information that the TA needs to know:
-# - (write here, if any)
 #
 #####################################################################
 
