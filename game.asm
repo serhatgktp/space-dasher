@@ -1295,7 +1295,6 @@ victory:
     # j end_program
     j game_over_loop    # Give the option to restart or quit after finishing the game?
 
-
 defeat:
     # jal clear_screen  # Looks nicer without clearing the screen?
     
@@ -1483,8 +1482,3 @@ defeat:
 end_program:
     li $v0, 10 # terminate the program gracefully
     syscall
-
-
-
-
-
